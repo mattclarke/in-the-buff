@@ -50,26 +50,26 @@ if __name__ == "__main__":
 
     required_args = parser.add_argument_group("required arguments")
     required_args.add_argument(
-        "-b",
-        "--broker",
+        "-b", "--broker", type=str, help="the broker address", required=True
+    )
+
+    required_args.add_argument(
+        "-t", "--topic", type=str, help="the data topic", required=True
+    )
+
+    required_args.add_argument(
+        "-s",
+        "--schema",
         type=str,
-        help="the broker address",
+        help="the FlatBuffers schema to decode",
         required=True,
     )
 
-    required_args.add_argument(
-        "-t", "--topic", type=str, help="the data topic",
-        required=True
-    )
-
-    required_args.add_argument(
-        "-s", "--schema", type=str, help="the FlatBuffers schema to decode",
-        required=True
-    )
-
     parser.add_argument(
-        "-so", "--start-from-oldest", action="store_true",
-        help="whether to start consuming from oldest message"
+        "-so",
+        "--start-from-oldest",
+        action="store_true",
+        help="whether to start consuming from oldest message",
     )
 
     args = parser.parse_args()

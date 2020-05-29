@@ -22,4 +22,3 @@ class TestDeserialiser:
         assert result.key == "my_key"
         assert result.value == "my_value"
         assert result.time_stamp == 123456
-

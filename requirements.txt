@@ -1,2 +1,4 @@
-ess-streaming-data-types >= 0.7.0
+ess-streaming-data-types >= 0.7.1
 kafka-python
+pre-commit
+pytest
