@@ -6,10 +6,9 @@ class UnknownSchemaException(Exception):
 
 
 class Deserialiser:
-    def __init__(self, schema):
+    @staticmethod
+    def deserialise(buffer):
+        schema = buffer[4:8].decode()
         if schema not in DESERIALISERS:
             raise UnknownSchemaException(f"Could not find deserialiser for {schema}")
-        self.deserialiser = DESERIALISERS[schema]
-
-    def deserialise(self, buffer):
-        return self.deserialiser(buffer)
+        return DESERIALISERS[schema](buffer)

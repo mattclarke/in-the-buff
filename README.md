@@ -4,13 +4,12 @@ An simple application for decoding FlatBuffers messages stored in Apache Kafka.
 
 ## Usage
 ```
-python ./bin/in-the-buff.py -b localhost:9092 -t data_topic -s hs00
+python ./bin/in-the-buff.py -b localhost:9092 -t data_topic
 ```
 
 Parameters:
  --broker (str) - The address of the Kafka broker
  --topic (str) - The name of the Kafka topic to consume from
- --schema (str) - The FlatBuffers schema to convert from
  --start-from-oldest (flag) - Whether to start from the oldest message
 
 See https://github.com/ess-dmsc/python-streaming-data-types to see which schema
