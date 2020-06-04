@@ -15,6 +15,8 @@ Parameters:
 See https://github.com/ess-dmsc/python-streaming-data-types to see which schema
 are supported.
 
+If it cannot find a deserialiser then it will print the raw message.
+
 ## For developers
 
 ### Install the commit hooks (important)
