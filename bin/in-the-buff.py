@@ -10,9 +10,11 @@ from in_the_buff.consumer import Consumer
 from in_the_buff.deserialiser import Deserialiser, UnknownSchemaException
 
 
-def print_message(timestamp, message, spacer=True):
+def print_message(timestamp, schema, message, spacer=True):
     if spacer:
         print("=" * 80)
+    print(f"Local time = {datetime.datetime.now()}")
+    print(f"Schema = {schema}")
     readable_timestamp = datetime.datetime.fromtimestamp(timestamp // 1000)
     print(f"Message Timestamp = {timestamp} ({readable_timestamp})")
     pp = pprint.PrettyPrinter(indent=4)
@@ -24,7 +26,7 @@ def print_exception(message):
     print(message)
 
 
-def print_missing_schmma(error, timestamp, message):
+def print_missing_schema(error, timestamp, message):
     print("=" * 80)
     print(f"{error}, but printing anyway...\n")
     print_message(timestamp, message, spacer=False)
@@ -32,9 +34,10 @@ def print_missing_schmma(error, timestamp, message):
 
 def handle_message(message):
     try:
-        print_message(message[0], Deserialiser.deserialise(message[1]))
+        schema, deserialised_msg = Deserialiser.deserialise(message[1])
+        print_message(message[0], schema, deserialised_msg)
     except UnknownSchemaException as error:
-        print_missing_schmma(error, message[0], message[1])
+        print_missing_schema(error, message[0], message[1])
     except Exception as error:
         print_exception(error)
 

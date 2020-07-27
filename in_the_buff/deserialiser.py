@@ -11,4 +11,4 @@ class Deserialiser:
         schema = buffer[4:8].decode()
         if schema not in DESERIALISERS:
             raise UnknownSchemaException(f"Could not find deserialiser for {schema}")
-        return DESERIALISERS[schema](buffer)
+        return schema, DESERIALISERS[schema](buffer)
