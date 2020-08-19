@@ -36,7 +36,7 @@ class Consumer:
     def move_to_previous(self):
         """
         Move to before the last message already in the topic, so that will be
-        read.
+        always read.
         """
         for tp in self.topic_partitions:
             _, high = self.consumer.get_watermark_offsets(tp, timeout=1, cached=False)
@@ -54,5 +54,8 @@ class Consumer:
         else:
             return [(msg.timestamp()[1], msg.value())]
 
-    def close(self):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
         self.consumer.close()

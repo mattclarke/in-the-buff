@@ -43,19 +43,18 @@ def handle_message(message):
 
 
 def main(broker, topic, start_from_oldest=False):
-    consumer = Consumer(broker, topic)
+    with Consumer(broker, topic) as consumer:
+        if start_from_oldest:
+            consumer.move_to_oldest()
+        else:
+            # Always get last message, if available
+            consumer.move_to_previous()
 
-    if start_from_oldest:
-        consumer.move_to_oldest()
-    else:
-        # Always get last message, if available
-        consumer.move_to_previous()
-
-    while True:
-        messages = consumer.check_for_messages()
-        for msg in messages:
-            handle_message(msg)
-        time.sleep(0.5)
+        while True:
+            messages = consumer.check_for_messages()
+            for msg in messages:
+                handle_message(msg)
+            time.sleep(0.5)
 
 
 if __name__ == "__main__":
