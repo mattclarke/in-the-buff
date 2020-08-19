@@ -1,3 +1,5 @@
+import time
+
 from confluent_kafka import Consumer as KafkaConsumer
 from confluent_kafka import TopicPartition
 
@@ -7,7 +9,7 @@ class Consumer:
         self.consumer = KafkaConsumer(
             {
                 "bootstrap.servers": brokers,
-                "group.id": f"in-the-buff",
+                "group.id": f"in-the-buff-{time.time_ns()}",
                 "auto.offset.reset": "latest",
             }
         )
