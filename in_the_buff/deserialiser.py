@@ -1,5 +1,6 @@
-from streaming_data_types import DESERIALISERS
 import json
+
+from streaming_data_types import DESERIALISERS
 
 
 class UnknownSchemaException(Exception):
