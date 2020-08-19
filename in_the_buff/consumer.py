@@ -22,12 +22,18 @@ class Consumer:
         self.consumer.assign(self.topic_partitions)
 
     def move_to_latest(self):
+        """
+        Move passed all the current messages and start from any new messages.
+        """
         for tp in self.topic_partitions:
             _, high = self.consumer.get_watermark_offsets(tp, timeout=1, cached=False)
             tp.offset = high
             self.consumer.seek(tp)
 
     def move_to_oldest(self):
+        """
+        Move to the oldest message available.
+        """
         for tp in self.topic_partitions:
             low, _ = self.consumer.get_watermark_offsets(tp, timeout=1, cached=False)
             tp.offset = low
