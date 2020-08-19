@@ -10,7 +10,7 @@ from in_the_buff.consumer import Consumer
 from in_the_buff.deserialiser import Deserialiser, UnknownSchemaException
 
 
-def print_message(timestamp, schema, message, spacer=True):
+def print_message(timestamp, message, schema="unknown", spacer=True):
     if spacer:
         print("=" * 80)
     print(f"Local time = {datetime.datetime.now()}")
@@ -35,7 +35,7 @@ def print_missing_schema(error, timestamp, message):
 def handle_message(message):
     try:
         schema, deserialised_msg = Deserialiser.deserialise(message[1])
-        print_message(message[0], schema, deserialised_msg)
+        print_message(message[0], deserialised_msg, schema)
     except UnknownSchemaException as error:
         print_missing_schema(error, message[0], message[1])
     except Exception as error:
@@ -43,16 +43,13 @@ def handle_message(message):
 
 
 def main(broker, topic, start_from_oldest=False):
-    consumer = Consumer([broker], topic)
+    consumer = Consumer(broker, topic)
 
     if start_from_oldest:
         consumer.move_to_oldest()
     else:
         # Always get last message, if available
-        last_msg = consumer.get_last_message()
-        if last_msg:
-            handle_message(last_msg)
-        consumer.move_to_latest()
+        consumer.move_to_previous()
 
     while True:
         messages = consumer.check_for_messages()

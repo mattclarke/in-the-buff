@@ -1,4 +1,5 @@
 from streaming_data_types import DESERIALISERS
+import json
 
 
 class UnknownSchemaException(Exception):
@@ -10,5 +11,11 @@ class Deserialiser:
     def deserialise(buffer):
         schema = buffer[4:8].decode()
         if schema not in DESERIALISERS:
-            raise UnknownSchemaException(f"Could not find deserialiser for {schema}")
+            try:
+                # Try JSON
+                return "JSON", json.loads(buffer.decode())
+            except:  # noqa
+                raise UnknownSchemaException(
+                    f"Could not find deserialiser for `{schema}`"
+                )
         return schema, DESERIALISERS[schema](buffer)
