@@ -8,14 +8,17 @@ python ./bin/in-the-buff.py -b localhost:9092 -t data_topic
 ```
 
 Parameters:
+
  --broker (str) - The address of the Kafka broker
+ 
  --topic (str) - The name of the Kafka topic to consume from
+ 
  --start-from-oldest (flag) - Whether to start from the oldest message
 
 See https://github.com/ess-dmsc/python-streaming-data-types to see which schema
 are supported.
 
-If it cannot find a deserialiser then it will print the raw message.
+If it cannot find a deserialiser then it will try to treat it as JSON, if it cannot do that then it will print the raw message.
 
 ## For developers
 
