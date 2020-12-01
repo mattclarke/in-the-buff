@@ -10,7 +10,7 @@ from in_the_buff.consumer import Consumer
 from in_the_buff.deserialiser import Deserialiser, UnknownSchemaException
 
 
-def print_message(timestamp, message, schema="unknown", spacer=True):
+def print_monitor_message(timestamp, message, schema="unknown", spacer=True):
     if spacer:
         print("=" * 80)
     print(f"Local time = {datetime.datetime.now()}")
@@ -29,20 +29,27 @@ def print_exception(message):
 def print_missing_schema(error, timestamp, message):
     print("=" * 80)
     print(f"{error}, but printing anyway...\n")
-    print_message(timestamp, message, spacer=False)
+    print_monitor_message(timestamp, message, spacer=False)
 
 
-def handle_message(message):
+def handle_monitor_message(message):
     try:
         schema, deserialised_msg = Deserialiser.deserialise(message[1])
-        print_message(message[0], deserialised_msg, schema)
+        print_monitor_message(message[0], deserialised_msg, schema)
     except UnknownSchemaException as error:
         print_missing_schema(error, message[0], message[1])
     except Exception as error:
         print_exception(error)
 
 
-def main(broker, topic, start_from_oldest=False):
+def monitor_topic(broker, start_from_oldest, topic):
+    """
+    Print any messages in the topic
+
+    :param broker:
+    :param start_from_oldest:
+    :param topic:
+    """
     with Consumer(broker, topic) as consumer:
         if start_from_oldest:
             consumer.move_to_oldest()
@@ -53,8 +60,62 @@ def main(broker, topic, start_from_oldest=False):
         while True:
             messages = consumer.check_for_messages()
             for msg in messages:
-                handle_message(msg)
+                handle_monitor_message(msg)
             time.sleep(0.5)
+
+
+def query_topic(broker, topic):
+    """
+    Print the sources and schema in the selected topic.
+
+    :param broker:
+    :param topic:
+    """
+    with Consumer(broker, topic) as consumer:
+        consumer.move_to_oldest()
+
+        sources = set()
+        unrecognised = set()
+
+        while True:
+            messages = consumer.check_for_messages()
+            for msg in messages:
+                try:
+                    schema, deserialised_msg = Deserialiser.deserialise(msg[1])
+                    source = extract_source(deserialised_msg)
+                    if source:
+                        if source not in sources:
+                            print(f"source: {source} schema: {schema}")
+                            sources.add(source)
+                    else:
+                        if schema not in unrecognised:
+                            unrecognised.add(schema)
+                            print(f"Could not determine source from schema {schema}")
+                except UnknownSchemaException:
+                    schema = Deserialiser.get_schema(msg[1])
+                    if schema not in unrecognised:
+                        unrecognised.add(schema)
+                        print(f"Did not recognise schema {schema}")
+                except Exception as error:
+                    print_exception(error)
+            time.sleep(0.5)
+
+
+def extract_source(message):
+    if "source_name" in dir(message):
+        return message.source_name
+    elif "source" in dir(message):
+        return message.source
+    elif "name" in dir(message):
+        return message.name
+    return None
+
+
+def main(broker, topic, start_from_oldest=False, query=False):
+    if query:
+        query_topic(broker, topic)
+    else:
+        monitor_topic(broker, start_from_oldest, topic)
 
 
 if __name__ == "__main__":
@@ -76,6 +137,13 @@ if __name__ == "__main__":
         help="whether to start consuming from oldest message",
     )
 
+    parser.add_argument(
+        "-q",
+        "--query-mode",
+        action="store_true",
+        help="query the topic to see what schema and sources are present",
+    )
+
     args = parser.parse_args()
 
-    main(args.broker, args.topic, args.start_from_oldest)
+    main(args.broker, args.topic, args.start_from_oldest, args.query_mode)
