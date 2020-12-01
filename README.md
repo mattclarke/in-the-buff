@@ -1,5 +1,6 @@
 # in-the-buff
 A better name than buff-sniffer?
+
 An simple application for decoding FlatBuffers messages stored in Apache Kafka.
 
 ## Usage
@@ -8,15 +9,18 @@ python ./bin/in-the-buff.py -b localhost:9092 -t data_topic
 ```
 
 Parameters:
+
  --broker (str) - The address of the Kafka broker
+ 
  --topic (str) - The name of the Kafka topic to consume from
+ 
  --start-from-oldest (flag) - Whether to start from the oldest message
  --query-mode (flag) - Alternative mode where it tries to print the different message sources and schema
 
 See https://github.com/ess-dmsc/python-streaming-data-types to see which schema
 are supported.
 
-If it cannot find a deserialiser then it will print the raw message (normal mode only).
+If it cannot find a deserialiser then it will try to treat it as JSON, if it cannot do that then it will print the raw message (normal mode only).
 
 ## For developers
 
