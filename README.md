@@ -11,13 +11,19 @@ Parameters:
  --broker (str) - The address of the Kafka broker
  --topic (str) - The name of the Kafka topic to consume from
  --start-from-oldest (flag) - Whether to start from the oldest message
+ --query-mode (flag) - Alternative mode where it tries to print the different message sources and schema
 
 See https://github.com/ess-dmsc/python-streaming-data-types to see which schema
 are supported.
 
-If it cannot find a deserialiser then it will print the raw message.
+If it cannot find a deserialiser then it will print the raw message (normal mode only).
 
 ## For developers
+
+### Install the requirements
+```
+pip install -r requirements.txt
+```
 
 ### Install the commit hooks (important)
 There are commit hooks for Black and Flake8.

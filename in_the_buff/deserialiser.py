@@ -9,8 +9,12 @@ class UnknownSchemaException(Exception):
 
 class Deserialiser:
     @staticmethod
+    def get_schema(buffer):
+        return buffer[4:8].decode()
+
+    @staticmethod
     def deserialise(buffer):
-        schema = buffer[4:8].decode()
+        schema = Deserialiser.get_schema(buffer)
         if schema not in DESERIALISERS:
             try:
                 # Try JSON
