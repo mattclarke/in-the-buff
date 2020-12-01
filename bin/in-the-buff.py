@@ -42,7 +42,7 @@ def handle_message(message):
         print_exception(error)
 
 
-def main(broker, topic, start_from_oldest=False):
+def monitor_topic(broker, start_from_oldest, topic):
     with Consumer(broker, topic) as consumer:
         if start_from_oldest:
             consumer.move_to_oldest()
@@ -55,6 +55,45 @@ def main(broker, topic, start_from_oldest=False):
             for msg in messages:
                 handle_message(msg)
             time.sleep(0.5)
+
+
+def query_topic(broker, topic):
+    with Consumer(broker, topic) as consumer:
+        consumer.move_to_oldest()
+
+        sources = set()
+
+        while True:
+            messages = consumer.check_for_messages()
+            for msg in messages:
+                try:
+                    schema, deserialised_msg = Deserialiser.deserialise(msg[1])
+                    if "source_name" in dir(deserialised_msg):
+                        if deserialised_msg.source_name not in sources:
+                            sources.add(deserialised_msg.source_name)
+                            print(
+                                f"source: {deserialised_msg.source_name} schema: {schema}"
+                            )
+                    elif "source" in dir(deserialised_msg):
+                        if deserialised_msg.source not in sources:
+                            sources.add(deserialised_msg.source)
+                            print(f"source: {deserialised_msg.source} schema: {schema}")
+                    elif "name" in dir(deserialised_msg):
+                        if deserialised_msg.name not in sources:
+                            sources.add(deserialised_msg.name)
+                            print(f"source: {deserialised_msg.name} schema: {schema}")
+                except UnknownSchemaException as error:
+                    print_missing_schema(error, msg[0], msg[1])
+                except Exception as error:
+                    print_exception(error)
+            time.sleep(0.5)
+
+
+def main(broker, topic, start_from_oldest=False, query=True):
+    if query:
+        query_topic(broker, topic)
+    else:
+        monitor_topic(broker, start_from_oldest, topic)
 
 
 if __name__ == "__main__":
