@@ -15,6 +15,7 @@ Parameters:
  --topic (str) - The name of the Kafka topic to consume from
  
  --start-from-oldest (flag) - Whether to start from the oldest message
+ 
  --query-mode (flag) - Alternative mode where it tries to print the different message sources and schema
 
 See https://github.com/ess-dmsc/python-streaming-data-types to see which schema
