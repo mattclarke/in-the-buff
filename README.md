@@ -22,12 +22,12 @@ are supported.
 
 If it cannot find a deserialiser then it will try to treat it as JSON, if it cannot do that then it will print the raw message (normal mode only).
 
-## For developers
-
 ### Install the requirements
 ```
 pip install -r requirements.txt
 ```
+
+## For developers
 
 ### Install the commit hooks (important)
 There are commit hooks for Black and Flake8.
