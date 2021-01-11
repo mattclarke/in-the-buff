@@ -22,6 +22,8 @@ class Consumer:
         ]
 
         self.consumer.assign(self.topic_partitions)
+        # Crude - but gives the consumer time to connect before we try to do anything else
+        time.sleep(1)
 
     def move_to_latest(self):
         """
