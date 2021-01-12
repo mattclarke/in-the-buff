@@ -2,6 +2,7 @@ import time
 
 from confluent_kafka import Consumer as KafkaConsumer
 from confluent_kafka import TopicPartition
+from confluent_kafka.cimpl import KafkaException
 
 
 class Consumer:
@@ -22,8 +23,6 @@ class Consumer:
         ]
 
         self.consumer.assign(self.topic_partitions)
-        # Crude - but gives the consumer time to connect before we try to do anything else
-        time.sleep(1)
 
     def move_to_latest(self):
         """
@@ -32,7 +31,7 @@ class Consumer:
         for tp in self.topic_partitions:
             _, high = self.consumer.get_watermark_offsets(tp, timeout=1, cached=False)
             tp.offset = high
-            self.consumer.seek(tp)
+            self._seek_position(tp)
 
     def move_to_oldest(self):
         """
@@ -41,7 +40,7 @@ class Consumer:
         for tp in self.topic_partitions:
             low, _ = self.consumer.get_watermark_offsets(tp, timeout=1, cached=False)
             tp.offset = low
-            self.consumer.seek(tp)
+            self._seek_position(tp)
 
     def move_to_previous(self):
         """
@@ -52,7 +51,19 @@ class Consumer:
             _, high = self.consumer.get_watermark_offsets(tp, timeout=1, cached=False)
             if high > 0:
                 tp.offset = high - 1
+                self._seek_position(tp)
+
+    def _seek_position(self, tp):
+        # If the topic has just been assigned then seek might not be possible
+        # if the assignment hasn't finished.
+        # So just retry until it succeeds.
+        seek_done = False
+        while not seek_done:
+            try:
                 self.consumer.seek(tp)
+                seek_done = True
+            except KafkaException:
+                time.sleep(0.5)
 
     def check_for_messages(self):
         msg = self.consumer.poll(0.0)
