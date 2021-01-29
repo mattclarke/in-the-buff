@@ -58,10 +58,10 @@ def monitor_topic(broker, start_from_oldest, topic):
             consumer.move_to_previous()
 
         while True:
-            messages = consumer.check_for_messages()
-            for msg in messages:
-                handle_monitor_message(msg)
-            time.sleep(0.5)
+            message = consumer.check_for_message()
+            if message:
+                handle_monitor_message(message)
+            time.sleep(0.01)
 
 
 def query_topic(broker, topic):
@@ -78,10 +78,10 @@ def query_topic(broker, topic):
         unrecognised = set()
 
         while True:
-            messages = consumer.check_for_messages()
-            for msg in messages:
+            message = consumer.check_for_message()
+            if message:
                 try:
-                    schema, deserialised_msg = Deserialiser.deserialise(msg[1])
+                    schema, deserialised_msg = Deserialiser.deserialise(message[1])
                     source = extract_source(deserialised_msg)
                     if source:
                         if source not in sources:
@@ -92,7 +92,7 @@ def query_topic(broker, topic):
                             unrecognised.add(schema)
                             print(f"Could not determine source from schema {schema}")
                 except UnknownSchemaException:
-                    schema = Deserialiser.get_schema(msg[1])
+                    schema = Deserialiser.get_schema(message[1])
                     if schema not in unrecognised:
                         unrecognised.add(schema)
                         print(f"Did not recognise schema {schema}")
@@ -102,12 +102,21 @@ def query_topic(broker, topic):
 
 
 def extract_source(message):
-    if "source_name" in dir(message):
-        return message.source_name
-    elif "source" in dir(message):
-        return message.source
-    elif "name" in dir(message):
-        return message.name
+    # Currently can be a dict or a namedTuple
+    if isinstance(message, dict):
+        if "source" in message:
+            return message["source"]
+        elif "source_name" in message:
+            return message["source_name"]
+        elif "name" in message:
+            return message["name"]
+    else:
+        if "source" in dir(message):
+            return message.source
+        if "source_name" in dir(message):
+            return message.source_name
+        elif "name" in dir(message):
+            return message.name
     return None
 
 

@@ -65,15 +65,15 @@ class Consumer:
             except KafkaException:
                 time.sleep(0.5)
 
-    def check_for_messages(self):
-        msg = self.consumer.poll(0.0)
+    def check_for_message(self):
+        msg = self.consumer.poll(timeout=0.5)
         if msg is None:
-            return []
+            return None
         if msg.error():
             # TODO: raise this?
-            return []
+            return None
         else:
-            return [(msg.timestamp()[1], msg.value())]
+            return msg.timestamp()[1], msg.value()
 
     def __enter__(self):
         return self
