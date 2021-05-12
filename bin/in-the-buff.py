@@ -13,10 +13,11 @@ from in_the_buff.deserialiser import Deserialiser, UnknownSchemaException
 def print_monitor_message(timestamp, message, schema="unknown", spacer=True):
     if spacer:
         print("=" * 80)
-    print(f"Local time = {datetime.datetime.now()}")
+    local_time = datetime.datetime.now()
+    print(f"Local time = {local_time} {local_time.astimezone().tzname()}")
     print(f"Schema = {schema}")
-    readable_timestamp = datetime.datetime.fromtimestamp(timestamp // 1000)
-    print(f"Message Timestamp = {timestamp} ({readable_timestamp})")
+    readable_timestamp = datetime.datetime.utcfromtimestamp(timestamp // 1000)
+    print(f"Message Timestamp = {timestamp} ({readable_timestamp} UTC)")
     pp = pprint.PrettyPrinter(indent=4)
     pp.pprint(message)
 
