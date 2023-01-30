@@ -1,7 +1,7 @@
 # in-the-buff
 A better name than buff-sniffer?
 
-An simple application for decoding FlatBuffers messages stored in Apache Kafka.
+A simple application for decoding FlatBuffers messages stored in Apache Kafka.
 
 ## Usage
 ```
@@ -17,6 +17,8 @@ Parameters:
  --start-from-oldest (flag) - Whether to start from the oldest message
  
  --query-mode (flag) - Alternative mode where it tries to print the different message sources and schema
+
+ --filter (str) - Only show messages with the specified schema
 
 See https://github.com/ess-dmsc/python-streaming-data-types to see which schema
 are supported.

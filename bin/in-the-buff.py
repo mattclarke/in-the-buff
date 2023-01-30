@@ -33,9 +33,11 @@ def print_missing_schema(error, timestamp, message):
     print_monitor_message(timestamp, message, spacer=False)
 
 
-def handle_monitor_message(message):
+def handle_monitor_message(message, schema_filter):
     try:
         schema, deserialised_msg = Deserialiser.deserialise(message[1])
+        if schema_filter and schema_filter != schema:
+            return
         print_monitor_message(message[0], deserialised_msg, schema)
     except UnknownSchemaException as error:
         print_missing_schema(error, message[0], message[1])
@@ -43,13 +45,14 @@ def handle_monitor_message(message):
         print_exception(error)
 
 
-def monitor_topic(broker, start_from_oldest, topic):
+def monitor_topic(broker, start_from_oldest, topic, schema_filter):
     """
     Print any messages in the topic
 
     :param broker:
     :param start_from_oldest:
     :param topic:
+    :param schema_filter:
     """
     with Consumer(broker, topic) as consumer:
         if start_from_oldest:
@@ -61,19 +64,21 @@ def monitor_topic(broker, start_from_oldest, topic):
         while True:
             message = consumer.check_for_message()
             if message:
-                handle_monitor_message(message)
+                handle_monitor_message(message, schema_filter)
             time.sleep(0.01)
 
 
-def query_topic(broker, topic):
+def query_topic(broker, topic, start_from_oldest):
     """
     Print the sources and schema in the selected topic.
 
     :param broker:
     :param topic:
+    :param start_from_oldest
     """
     with Consumer(broker, topic) as consumer:
-        consumer.move_to_oldest()
+        if start_from_oldest:
+            consumer.move_to_oldest()
 
         sources = set()
         unrecognised = set()
@@ -121,11 +126,11 @@ def extract_source(message):
     return None
 
 
-def main(broker, topic, start_from_oldest=False, query=False):
+def main(broker, topic, start_from_oldest=False, query=False, schema_filter=""):
     if query:
-        query_topic(broker, topic)
+        query_topic(broker, topic, start_from_oldest)
     else:
-        monitor_topic(broker, start_from_oldest, topic)
+        monitor_topic(broker, start_from_oldest, topic, schema_filter)
 
 
 if __name__ == "__main__":
@@ -154,6 +159,13 @@ if __name__ == "__main__":
         help="query the topic to see what schema and sources are present",
     )
 
+    parser.add_argument(
+        "-f",
+        "--filter",
+        type=str,
+        default="",
+        help="only show message with this schema.",
+    )
     args = parser.parse_args()
 
-    main(args.broker, args.topic, args.start_from_oldest, args.query_mode)
+    main(args.broker, args.topic, args.start_from_oldest, args.query_mode, args.filter)
