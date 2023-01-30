@@ -90,9 +90,9 @@ def query_topic(broker, topic, start_from_oldest):
                     schema, deserialised_msg = Deserialiser.deserialise(message[1])
                     source = extract_source(deserialised_msg)
                     if source:
-                        if source not in sources:
+                        if (source, schema) not in sources:
                             print(f"source: {source} schema: {schema}")
-                            sources.add(source)
+                            sources.add((source, schema))
                     else:
                         if schema not in unrecognised:
                             unrecognised.add(schema)
