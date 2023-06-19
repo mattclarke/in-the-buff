@@ -45,19 +45,16 @@ def handle_monitor_message(message, schema_filter):
         print_exception(error)
 
 
-def monitor_topic(broker, start_from_oldest, topic, schema_filter):
+def monitor_topic(broker, topic, sasl_config, start_from_oldest, schema_filter):
     """
     Print any messages in the topic
 
     :param broker:
-    :param start_from_oldest:
     :param topic:
+    :param sasl_config:
+    :param start_from_oldest:
     :param schema_filter:
     """
-    sasl_config = create_sasl_config(
-        "SASL_SSL", "SCRAM-SHA-256", "ecdc-kafka-ca.crt", "", ""
-    )
-
     with Consumer(broker, topic, sasl_config) as consumer:
         if start_from_oldest:
             consumer.move_to_oldest()
@@ -72,15 +69,16 @@ def monitor_topic(broker, start_from_oldest, topic, schema_filter):
             time.sleep(0.01)
 
 
-def query_topic(broker, topic, start_from_oldest):
+def query_topic(broker, topic, sasl_config, start_from_oldest):
     """
     Print the sources and schema in the selected topic.
 
     :param broker:
     :param topic:
-    :param start_from_oldest
+    :param sasl_config:
+    :param start_from_oldest:
     """
-    with Consumer(broker, topic) as consumer:
+    with Consumer(broker, topic, sasl_config) as consumer:
         if start_from_oldest:
             consumer.move_to_oldest()
 
@@ -130,11 +128,13 @@ def extract_source(message):
     return None
 
 
-def main(broker, topic, start_from_oldest=False, query=False, schema_filter=""):
+def main(
+    broker, topic, sasl_config, start_from_oldest=False, query=False, schema_filter=""
+):
     if query:
-        query_topic(broker, topic, start_from_oldest)
+        query_topic(broker, topic, sasl_config, start_from_oldest)
     else:
-        monitor_topic(broker, start_from_oldest, topic, schema_filter)
+        monitor_topic(broker, topic, sasl_config, start_from_oldest, schema_filter)
 
 
 if __name__ == "__main__":
@@ -170,6 +170,62 @@ if __name__ == "__main__":
         default="",
         help="only show message with this schema.",
     )
+
+    parser.add_argument(
+        "-prot",
+        "--sasl-protocol",
+        type=str,
+        default="",
+        help="the SASL protocol to use.",
+    )
+
+    parser.add_argument(
+        "-mech",
+        "--sasl-mechanism",
+        type=str,
+        default="",
+        help="the SASL mechanism to use.",
+    )
+
+    parser.add_argument(
+        "-cert",
+        "--cert-path",
+        type=str,
+        default="",
+        help="the path to the certificate file.",
+    )
+
+    parser.add_argument(
+        "-user",
+        "--username",
+        type=str,
+        default="",
+        help="the user name.",
+    )
+
+    parser.add_argument(
+        "-password",
+        "--password",
+        type=str,
+        default="",
+        help="the password.",
+    )
+
     args = parser.parse_args()
 
-    main(args.broker, args.topic, args.start_from_oldest, args.query_mode, args.filter)
+    sasl_config = create_sasl_config(
+        args.sasl_protocol,
+        args.sasl_mechanism,
+        args.cert_path,
+        args.username,
+        args.password,
+    )
+
+    main(
+        args.broker,
+        args.topic,
+        sasl_config,
+        args.start_from_oldest,
+        args.query_mode,
+        args.filter,
+    )
