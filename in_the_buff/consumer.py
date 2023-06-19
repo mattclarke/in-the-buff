@@ -5,15 +5,62 @@ from confluent_kafka import TopicPartition
 from confluent_kafka.cimpl import KafkaException
 
 
+def create_sasl_config(protocol=None, mechanism=None, certificate_path=None, username=None, password=None):
+    """Create a SASL config for connecting to Kafka.
+
+    Note that whereas some SASL mechanisms do not require user/password, the
+    three we currently support do.
+
+    :return: A dictionary of configuration parameters.
+    """
+    if not protocol:
+        return {}
+
+    supported_security_protocols = ["SASL_PLAINTEXT", "SASL_SSL"]
+    supported_sasl_mechanisms = ["PLAIN", "SCRAM-SHA-512", "SCRAM-SHA-256"]
+
+    if protocol not in supported_security_protocols:
+        raise Exception(
+            f"Security protocol {protocol} not supported, use one of "
+            f"{supported_security_protocols}"
+        )
+
+    if not mechanism:
+        raise Exception(
+            f"SASL mechanism must be specified for security protocol {protocol}"
+        )
+    elif mechanism not in supported_sasl_mechanisms:
+        raise Exception(
+            f"SASL mechanism {mechanism} not supported, use one of "
+            f"{supported_sasl_mechanisms}"
+        )
+
+    if not username or not password:
+        raise Exception(
+            f"Username and password must be provided to use SASL {mechanism}"
+        )
+
+    sasl_config = {
+        "security.protocol": protocol,
+        "sasl.mechanism": mechanism,
+        "sasl.username": username,
+        "sasl.password": password,
+    }
+
+    if certificate_path:
+        sasl_config["ssl.ca.location"] = certificate_path
+
+    return sasl_config
+
+
 class Consumer:
-    def __init__(self, brokers, topic):
-        self.consumer = KafkaConsumer(
-            {
+    def __init__(self, brokers, topic, sasl_config):
+        default_config = {
                 "bootstrap.servers": brokers,
                 "group.id": f"in-the-buff-{time.time_ns()}",
                 "auto.offset.reset": "latest",
             }
-        )
+        self.consumer = KafkaConsumer({**default_config, **sasl_config})
         metadata = self.consumer.list_topics(topic)
         if topic not in metadata.topics:
             raise Exception("Topic does not exist")

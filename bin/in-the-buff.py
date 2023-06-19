@@ -6,7 +6,7 @@ import sys
 import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
-from in_the_buff.consumer import Consumer
+from in_the_buff.consumer import Consumer, create_sasl_config
 from in_the_buff.deserialiser import Deserialiser, UnknownSchemaException
 
 
@@ -54,7 +54,9 @@ def monitor_topic(broker, start_from_oldest, topic, schema_filter):
     :param topic:
     :param schema_filter:
     """
-    with Consumer(broker, topic) as consumer:
+    sasl_config = create_sasl_config("SASL_SSL", "SCRAM-SHA-256", "ecdc-kafka-ca.crt", "", "")
+
+    with Consumer(broker, topic, sasl_config) as consumer:
         if start_from_oldest:
             consumer.move_to_oldest()
         else:
