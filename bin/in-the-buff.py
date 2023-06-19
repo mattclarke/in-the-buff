@@ -54,7 +54,9 @@ def monitor_topic(broker, start_from_oldest, topic, schema_filter):
     :param topic:
     :param schema_filter:
     """
-    sasl_config = create_sasl_config("SASL_SSL", "SCRAM-SHA-256", "ecdc-kafka-ca.crt", "", "")
+    sasl_config = create_sasl_config(
+        "SASL_SSL", "SCRAM-SHA-256", "ecdc-kafka-ca.crt", "", ""
+    )
 
     with Consumer(broker, topic, sasl_config) as consumer:
         if start_from_oldest:

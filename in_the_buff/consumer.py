@@ -5,7 +5,9 @@ from confluent_kafka import TopicPartition
 from confluent_kafka.cimpl import KafkaException
 
 
-def create_sasl_config(protocol=None, mechanism=None, certificate_path=None, username=None, password=None):
+def create_sasl_config(
+    protocol=None, mechanism=None, certificate_path=None, username=None, password=None
+):
     """Create a SASL config for connecting to Kafka.
 
     Note that whereas some SASL mechanisms do not require user/password, the
@@ -56,10 +58,10 @@ def create_sasl_config(protocol=None, mechanism=None, certificate_path=None, use
 class Consumer:
     def __init__(self, brokers, topic, sasl_config):
         default_config = {
-                "bootstrap.servers": brokers,
-                "group.id": f"in-the-buff-{time.time_ns()}",
-                "auto.offset.reset": "latest",
-            }
+            "bootstrap.servers": brokers,
+            "group.id": f"in-the-buff-{time.time_ns()}",
+            "auto.offset.reset": "latest",
+        }
         self.consumer = KafkaConsumer({**default_config, **sasl_config})
         metadata = self.consumer.list_topics(topic)
         if topic not in metadata.topics:
