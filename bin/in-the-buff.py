@@ -64,10 +64,13 @@ def monitor_topic(broker, topic, sasl_config, start_from_oldest, schema_filter):
             consumer.move_to_previous()
 
         while True:
-            message = consumer.check_for_message()
-            if message:
-                handle_monitor_message(message, schema_filter)
-            time.sleep(0.01)
+            try:
+                message = consumer.check_for_message()
+                if message:
+                    handle_monitor_message(message, schema_filter)
+                time.sleep(0.01)
+            except KeyboardInterrupt:
+                break
 
 
 def query_topic(broker, topic, sasl_config, start_from_oldest):
