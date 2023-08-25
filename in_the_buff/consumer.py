@@ -122,7 +122,7 @@ class Consumer:
             # TODO: raise this?
             return None
         else:
-            return msg.timestamp()[1], msg.value()
+            return msg.timestamp()[1], msg.value(), msg.offset()
 
     def __enter__(self):
         return self
