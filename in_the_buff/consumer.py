@@ -63,7 +63,7 @@ class Consumer:
             "auto.offset.reset": "latest",
         }
         self.consumer = KafkaConsumer({**default_config, **sasl_config})
-        metadata = self.consumer.list_topics(topic)
+        metadata = self._get_metadata_blocking(topic)
         if topic not in metadata.topics:
             raise Exception("Topic does not exist")
 
@@ -72,6 +72,14 @@ class Consumer:
         ]
 
         self.consumer.assign(self.topic_partitions)
+
+    def _get_metadata_blocking(self, topic):
+        while True:
+            try:
+                return self.consumer.list_topics(topic, timeout=1)
+            except KafkaException as error:
+                print("Cannot get topic metadata - broker(s) down?")
+                time.sleep(0.1)
 
     def move_to_latest(self):
         """
