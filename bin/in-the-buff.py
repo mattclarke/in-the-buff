@@ -10,7 +10,9 @@ from in_the_buff.consumer import Consumer, create_sasl_config
 from in_the_buff.deserialiser import Deserialiser, UnknownSchemaException
 
 
-def print_monitor_message(timestamp, message, offset, partition, schema="unknown", spacer=True):
+def print_monitor_message(
+    timestamp, message, offset, partition, schema="unknown", spacer=True
+):
     if spacer:
         print("=" * 80)
     local_time = datetime.datetime.now()
@@ -40,7 +42,9 @@ def handle_monitor_message(message, schema_filter):
         schema, deserialised_msg = Deserialiser.deserialise(message[1])
         if schema_filter and schema_filter != schema:
             return
-        print_monitor_message(message[0], deserialised_msg, message[2], message[3], schema)
+        print_monitor_message(
+            message[0], deserialised_msg, message[2], message[3], schema
+        )
     except UnknownSchemaException as error:
         print_missing_schema(error, message[0], message[1], message[2])
     except Exception as error:
