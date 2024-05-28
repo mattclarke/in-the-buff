@@ -31,10 +31,10 @@ def print_exception(message):
     print(message)
 
 
-def print_missing_schema(error, timestamp, message, offset):
+def print_missing_schema(error, timestamp, message, offset, partition):
     print("=" * 80)
     print(f"{error}, but printing anyway...\n")
-    print_monitor_message(timestamp, message, offset, spacer=False)
+    print_monitor_message(timestamp, message, offset, partition, spacer=False)
 
 
 def handle_monitor_message(message, schema_filter):
@@ -46,7 +46,7 @@ def handle_monitor_message(message, schema_filter):
             message[0], deserialised_msg, message[2], message[3], schema
         )
     except UnknownSchemaException as error:
-        print_missing_schema(error, message[0], message[1], message[2])
+        print_missing_schema(error, message[0], message[1], message[2], message[3])
     except Exception as error:
         print_exception(error)
 
