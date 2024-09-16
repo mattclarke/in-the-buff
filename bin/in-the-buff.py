@@ -137,12 +137,32 @@ def extract_source(message):
     return None
 
 
+def print_topics(broker, sasl_config):
+    with Consumer(broker, None, sasl_config) as consumer:
+        topics = consumer.get_topics()
+        topics.sort()
+        for t, p in topics:
+            print(f"{t} ({p})")
+
+
 def main(
-    broker, topic, sasl_config, start_from_oldest=False, query=False, schema_filter=""
+    broker,
+    topic,
+    sasl_config,
+    start_from_oldest=False,
+    query=False,
+    list_topics=False,
+    schema_filter="",
 ):
-    if query:
+    if list_topics:
+        print_topics(broker, sasl_config)
+    elif query:
+        if not topic:
+            raise RuntimeError("topic required")
         query_topic(broker, topic, sasl_config, start_from_oldest)
     else:
+        if not topic:
+            raise RuntimeError("topic required")
         monitor_topic(broker, topic, sasl_config, start_from_oldest, schema_filter)
 
 
@@ -154,9 +174,7 @@ if __name__ == "__main__":
         "-b", "--broker", type=str, help="the broker address", required=True
     )
 
-    required_args.add_argument(
-        "-t", "--topic", type=str, help="the data topic", required=True
-    )
+    parser.add_argument("-t", "--topic", type=str, help="the data topic", default="")
 
     parser.add_argument(
         "-so",
@@ -170,6 +188,13 @@ if __name__ == "__main__":
         "--query-mode",
         action="store_true",
         help="query the topic to see what schema and sources are present",
+    )
+
+    parser.add_argument(
+        "-lt",
+        "--list-topics",
+        action="store_true",
+        help="query the brokers to see what topics are present",
     )
 
     parser.add_argument(
@@ -236,5 +261,6 @@ if __name__ == "__main__":
         sasl_config,
         args.start_from_oldest,
         args.query_mode,
+        args.list_topics,
         args.filter,
     )

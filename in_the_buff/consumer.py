@@ -63,15 +63,16 @@ class Consumer:
             "auto.offset.reset": "latest",
         }
         self.consumer = KafkaConsumer({**default_config, **sasl_config})
-        metadata = self._get_metadata_blocking(topic)
-        if topic not in metadata.topics:
-            raise Exception("Topic does not exist")
+        if topic:
+            metadata = self._get_metadata_blocking(topic)
+            if topic not in metadata.topics:
+                raise Exception("Topic does not exist")
 
-        self.topic_partitions = [
-            TopicPartition(topic, p) for p in metadata.topics[topic].partitions
-        ]
+            self.topic_partitions = [
+                TopicPartition(topic, p) for p in metadata.topics[topic].partitions
+            ]
 
-        self.consumer.assign(self.topic_partitions)
+            self.consumer.assign(self.topic_partitions)
 
     def _get_metadata_blocking(self, topic):
         while True:
@@ -131,6 +132,13 @@ class Consumer:
             return None
         else:
             return msg.timestamp()[1], msg.value(), msg.offset(), msg.partition()
+
+    def get_topics(self):
+        result = []
+        metadata = self.consumer.list_topics()
+        for n, v in metadata.topics.items():
+            result.append((n, len(v.partitions)))
+        return result
 
     def __enter__(self):
         return self
